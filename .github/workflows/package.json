@@ -1,8 +1,0 @@
-{
-  "name": "docs:build",
-  "scripts": {
-  "docs:dev": "vite dev docs",
-  "docs:build": "vite build docs",
-  "build": "vite build docs"
-},
-}
