@@ -1,29 +1,59 @@
-name: NodeJS with Webpack
+
+# This workflow will do a clean install of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Build vite bwcoins.projectbw.ru
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ master ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ master ]
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [18.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v4
-
+    - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
+        cache: 'yarn'
+    - run: yarn install
+    - run: yarn docs:build  
 
-    - name: Build
-      run: |
-        npm install
-        vite build
-        npx webpack
+      # please check out the docs of the workflow for more details
+      # @see https://github.com/crazy-max/ghaction-github-pages
+      #      https://github.com/crazy-max/ghaction-github-pages
+
+    - name: Deploy to GitHub Pages
+      uses: crazy-max/ghaction-github-pages@v2
+      with:
+        # deploy to gh-pages branch
+        target_branch: gh-pages
+        # deploy the default output dir of VuePress
+        
+        build_dir: docs/.vuepress/dist
+        fqdn: bwcoin.projectbw.ru
+      env:
+        # @see https://docs.github.com/en/actions/reference/authentication-in-a-workflow#about-the-github_token-secret
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: telegramm send
+      uses: robotomize/notify-telegram@v0.1.0
+      if: always()
+      with:
+        chat: ${{ secrets.chat }} # user id or channel name secret
+        token: ${{ secrets.token }} # token secret
+        status: ${{ job.status }} # do not modify this line
+        message: ${{ secrets.message }} # custom message
+
+        
